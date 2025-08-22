@@ -1,0 +1,129 @@
+
+stages:
+  - pre-build
+  - build
+  - post-build
+  - deploy
+  - rollback
+
+include:
+  # Shared
+  - project: 'devops/shared-gitlab-files'
+    ref: main
+    file: 'templates/django/shared.yml'
+
+  # Pre-build
+  - project: 'devops/shared-gitlab-files'
+    ref: main
+    file: 'templates/django/pre-build.yml'
+
+  # Build
+  - project: 'devops/shared-gitlab-files'
+    ref: main
+    file: 'templates/django/build.yml'
+
+  # Post-build
+  - project: 'devops/shared-gitlab-files'
+    ref: main
+    file: 'templates/django/post-build.yml'
+
+  # Deploy
+  - project: 'devops/shared-gitlab-files'
+    ref: main
+    file: 'templates/django/deploy-multiple.yml'
+
+  # Rollback
+  - project: 'devops/shared-gitlab-files'
+    ref: main
+    file: 'templates/django/rollback-multiple.yml'
+
+
+variables:
+  DEPLOYMENT: "autopay"  # Helm release name. Result will look like '<DEPLOYMENT>-<APPLICATION>'. Required in deployments with multiple apps like django+celery beat+celery worker stack
+
+  # Staging environment variables
+  STAGING_CLUSTER: staging
+  STAGING_NAMESPACE: staging
+
+  # Production environment variables
+  PRODUCTION_CLUSTER: production
+  PRODUCTION_NAMESPACE: autopay
+
+  APPLICATIONS: |
+    core-producer
+    core-worker
+#    core-producer
+
+# Build
+## Build jobs are located in shared-gitlab-files repo. See include above
+
+# Deploy
+## Deploy jobs are located in shared-gitlab-files repo. See include above
+
+# Disable staging actions
+build-staging:
+  when: manual
+
+deploy-staging:
+  when: manual
+
+
+
+build-production:
+  extends: .build
+  stage: build
+
+  only:
+    - production
+
+  variables:
+    DOCKERFILE: Dockerfile
+    ENV_TAG: production
+
+.deploy_multiple:
+  image: $DIND_IMAGE
+
+  variables: {}
+
+
+  before_script:
+    # - set -xe
+
+    # Name of cluster merged with KUBECONFIG prefix. When CLUSTER=STAGING end result will look like KUBECONFIG_STAGING
+    - export KUBECONFIG_VAR=$(echo "KUBECONFIG_$CLUSTER" | tr "[:lower:]" "[:upper:]")
+    - echo ${!KUBECONFIG_VAR} > tmp
+
+    - yq eval -P tmp > $KUECONFIG_PATH
+    - chmod 600 $KUECONFIG_PATH
+
+  script:
+    - export KUBECONFIG=$KUECONFIG_PATH
+    - kubectl -n autopay set image cronjob/autopay-cronjob autopay-cronjob=registry.cloudgate.uz/autopay/autopay:$CI_PIPELINE_IID
+
+    - helm repo add --username $HELM_REGISTRY_USERNAME --password $HELM_REGISTRY_PASSWORD $HELM_REPO_NAME $HELM_REGISTRY_PATH
+    - |
+      for APPLICATION in $APPLICATIONS; do
+
+        export VALUES_FILE=".helm/values-production-$APPLICATION.yml"
+
+        helm upgrade \
+          --install $DEPLOYMENT-$APPLICATION \
+          -n $NAMESPACE \
+          --create-namespace \
+          $HELM_REPO_NAME/$HELM_CHART_NAME \
+          --set=image.tag=$CI_PIPELINE_IID \
+          --values $VALUES_FILE
+
+      done
+
+
+deploy-production:
+  extends: .deploy_multiple
+  stage: deploy
+
+  only:
+    - production
+
+  variables:
+    CLUSTER: $PRODUCTION_CLUSTER
+    NAMESPACE: autopay

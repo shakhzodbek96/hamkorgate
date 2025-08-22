@@ -1,0 +1,48 @@
+version: "3.8"  # use a newer schema version
+
+services:
+    app:
+        container_name: hamkorgate
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: laravel-app
+        working_dir: /var/www/html
+        environment:
+            APPLICATION: development
+        ports:
+            - "8080:8000"
+        volumes:
+            - .:/var/www/html
+        networks:
+            - app-network
+            - shared-network
+            - redis-network
+        depends_on:
+            - postgres   # ensure postgres starts before app
+
+    postgres:
+        container_name: postgres
+        image: postgres:15   # specify version instead of `latest` for stability
+        environment:
+            POSTGRES_USER: user
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: hamkorgate
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        networks:
+            - app-network
+            - shared-network
+
+networks:
+    app-network:
+        driver: bridge
+    shared-network:
+        external: true
+    redis-network:
+        external: true
+
+volumes:
+    postgres_data:

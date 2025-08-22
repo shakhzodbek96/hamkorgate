@@ -1,0 +1,282 @@
+[
+    {
+        "name": "Просмотр партнера",
+        "guard_name": "admin"
+    },
+    {
+        "name": "Просмотр кабинета партнера",
+        "guard_name": "admin"
+    },
+    {
+        "name": "Создать партнера",
+        "guard_name": "admin"
+    },
+    {
+        "name": "Удалить партнера",
+        "guard_name": "admin"
+    },
+    {
+        "name": "Редактировать партнера",
+        "guard_name": "admin"
+    },
+    {
+        "name": "Добавить пользователя в партнера",
+        "guard_name": "admin"
+    },
+    {
+        "name": "Просмотр пользователей",
+        "guard_name": "web"
+    },
+    {
+        "name": "Создать пользователя",
+        "guard_name": "web"
+    },
+    {
+        "name": "Редактировать пользователя",
+        "guard_name": "web"
+    },
+    {
+        "name": "Удалить пользователя",
+        "guard_name": "web"
+    },
+    {
+        "name": "Установить роль для пользователя",
+        "guard_name": "web"
+    },
+    {
+        "name": "Посмотреть роль",
+        "guard_name": "web"
+    },
+    {
+        "name": "Создать новую роль",
+        "guard_name": "web"
+    },
+    {
+        "name": "Редактировать роль",
+        "guard_name": "web"
+    },
+    {
+        "name": "Удаление роль",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр разрешений",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр мерчантов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Создание мерчанта",
+        "guard_name": "web"
+    },
+    {
+        "name": "Редактирование мерчанта",
+        "guard_name": "web"
+    },
+    {
+        "name": "Удаление мерчанта",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр терминалов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Создание терминала",
+        "guard_name": "web"
+    },
+    {
+        "name": "Редактирование терминала",
+        "guard_name": "web"
+    },
+    {
+        "name": "Удаление терминала",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр клиентов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Синхронизация карт клиентов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Создание клиента",
+        "guard_name": "web"
+    },
+    {
+        "name": "Импортировать клиентов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Редактирование клиента",
+        "guard_name": "web"
+    },
+    {
+        "name": "Экспорт клиентов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Удаление клиента",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр контрактов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр контракта",
+        "guard_name": "web"
+    },
+    {
+        "name": "Создание контракта",
+        "guard_name": "web"
+    },
+    {
+        "name": "Импортировать контракты",
+        "guard_name": "web"
+    },
+    {
+        "name": "Экспорт контрактов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Редактирование контракта",
+        "guard_name": "web"
+    },
+    {
+        "name": "Удаление контракта",
+        "guard_name": "web"
+    },
+    {
+        "name": "Тоггл авто всех контрактов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Удалить все контракты",
+        "guard_name": "web"
+    },
+    {
+        "name": "Обнулить долги всех контрактов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Запуск платного поиска по UZCARD картам",
+        "guard_name": "web"
+    },
+    {
+        "name": "Запуск платного поиска по HUMO картам",
+        "guard_name": "web"
+    },
+    {
+        "name": "Платная синхронизация карт Uzcard",
+        "guard_name": "web"
+    },
+    {
+        "name": "Платная синхронизация карт Humo",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр запросы на карты",
+        "guard_name": "web"
+    },
+    {
+        "name": "Экспорт запросов на карты",
+        "guard_name": "web"
+    },
+    {
+        "name": "Синхронизация карт клиента",
+        "guard_name": "web"
+    },
+    {
+        "name": "Действия с картами",
+        "guard_name": "web"
+    },
+    {
+        "name": "Ручное списание с карты",
+        "guard_name": "web"
+    },
+    {
+        "name": "Ручное добавление карты",
+        "guard_name": "web"
+    },
+    {
+        "name": "Удаление карты",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр транзакций",
+        "guard_name": "web"
+    },
+    {
+        "name": "Экспорт транзакций",
+        "guard_name": "web"
+    },
+    {
+        "name": "Отмена транзакции",
+        "guard_name": "web"
+    },
+    {
+        "name": "Запросы на платежей",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр карт",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр вебхуков",
+        "guard_name": "web"
+    },
+    {
+        "name": "Отправка вебхука",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр мониторинга",
+        "guard_name": "web"
+    },
+    {
+        "name": "Мониторинг карт Uzcard",
+        "guard_name": "web"
+    },
+    {
+        "name": "Мониторинг карт Humo",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр скоринга",
+        "guard_name": "web"
+    },
+    {
+        "name": "Скоринг карт Humo",
+        "guard_name": "web"
+    },
+    {
+        "name": "Скоринг карт Uzcard",
+        "guard_name": "web"
+    },
+    {
+        "name": "Проверка транзакции",
+        "guard_name": "web"
+    },
+    {
+        "name": "Экспортировать статистику контрактов",
+        "guard_name": "web"
+    },
+    {
+        "name": "Просмотр E-Gov",
+        "guard_name": "web"
+    },
+    {
+        "name": "Получить E-Gov данные",
+        "guard_name": "web"
+    },
+    {
+        "name": "Регистрация карты",
+        "guard_name": "web"
+    }
+]

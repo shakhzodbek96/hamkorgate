@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+
+kind: CronJob
+
+metadata:
+  namespace: autopay
+  name: autopay-cronjob
+
+spec:
+  schedule: '* * * * *'
+  concurrencyPolicy: Forbid
+
+  jobTemplate:
+    metadata:
+      name: autopay-cronjob
+
+    spec:
+      template:
+
+        metadata:
+          annotations:
+            vault.hashicorp.com/agent-inject: "true"
+            vault.hashicorp.com/agent-pre-populate-only: "true"
+            vault.hashicorp.com/agent-inject-secret-.env: secret/data/k8s/unisoft-prod/autopay
+            vault.hashicorp.com/auth-path: auth/kubernetes-unisoft
+            vault.hashicorp.com/role: autopay-prod
+            vault.hashicorp.com/secret-volume-path-.env: /var/www/autopay
+            vault.hashicorp.com/agent-inject-template-.env: |
+              {{- with secret "secret/data/k8s/unisoft-prod/autopay" -}}
+              {{- range $key, $value := .Data.data }}
+              {{ $key }}={{ $value }}
+              {{- end }}
+              {{ end -}}
+              {{- with secret "secret/data/k8s/unisoft-prod/cdn" -}}
+              {{- range $key, $value := .Data.data }}
+              {{ $key }}={{ $value }}
+              {{- end }}
+              {{ end -}}
+              {{- with secret "secret/data/k8s/unisoft-prod/autopay-postgres" -}}
+              {{- range $key, $value := .Data.data }}
+              {{ $key }}={{ $value }}
+              {{- end }}
+              {{ end -}}
+              {{- with secret "secret/data/k8s/unisoft-prod/autopay-redis" -}}
+              {{- range $key, $value := .Data.data }}
+              {{ $key }}={{ $value }}
+              {{- end }}
+              {{ end -}}
+
+        spec:
+          restartPolicy: OnFailure
+
+          serviceAccount: vault-auth
+          serviceAccountName: vault-auth
+
+          imagePullSecrets:
+          - name: gitlab-registry
+
+          nodeSelector:
+            kubernetes.io/hostname: worker-08
+
+          containers:
+          - name: autopay-cronjob
+            image: registry.cloudgate.uz/autopay/autopay:331
+            env:
+            - name: APPLICATION
+              value: "cronjob"
