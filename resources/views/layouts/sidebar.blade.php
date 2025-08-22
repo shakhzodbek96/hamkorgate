@@ -61,7 +61,7 @@
                 @endif
                 @can('Просмотр терминалов')
                     <li>
-                        <a href="{{ route('terminals.index') }}" class="waves-effect {{ Request::is('terminals*') ? "mm-active":'' }}">
+                        <a href="#" class="waves-effect {{ Request::is('terminals*') ? "mm-active":'' }}">
                             <i class="fas fa-calculator"></i>
                             <span>Терминалы</span>
                         </a>
@@ -69,7 +69,7 @@
                 @endcan
                 @can('Просмотр мерчантов')
                     <li>
-                        <a href="{{ route('merchants.index') }}" class="waves-effect {{ Request::is('merchants*') ? "mm-active":'' }}">
+                        <a href="#" class="waves-effect {{ Request::is('merchants*') ? "mm-active":'' }}">
                             <i class="fas fa-building"></i>
                             <span>Мерчанты</span>
                         </a>
