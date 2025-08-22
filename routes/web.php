@@ -30,6 +30,7 @@ Route::group(['middleware' => "auth"], function () {
     Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/download-data', [App\Http\Controllers\HomeController::class, 'downloadData'])->name('home.download-data');
     Route::get('/update-data', [App\Http\Controllers\HomeController::class, 'updateData'])->name('home.update-data');
+    Route::post('partner/search', [PartnersController::class, 'search'])->name('partners.search');
 
     // User management
     Route::resource('users', App\Http\Controllers\Blade\UserController::class);
