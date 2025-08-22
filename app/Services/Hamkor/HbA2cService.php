@@ -4,7 +4,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 
 $BASE_URL = "https://host/inttransfer/v2/v2";
-$UNI_URL  = $BASE_URL . "/universal-method";
+$UNI_URL = $BASE_URL . "/universal-method";
 
 
 function cardListByPhone($phone): array
@@ -24,13 +24,13 @@ function nmtCheck($acc_type, $account, $amount, $currency, $pay_id, $settlement_
     global $UNI_URL;
 
     $payload = [
-        "action"   => "nmtcheck",
+        "action" => "nmtcheck",
         "acc_type" => $acc_type,
-        "account"  => $account,
+        "account" => $account,
         // keep money as string to match partner examples
-        "amount"   => (string)$amount,
+        "amount" => (string)$amount,
         "currency" => $currency,
-        "pay_id"   => $pay_id,
+        "pay_id" => $pay_id,
     ];
 
     if (!is_null($settlement_curr)) {
@@ -48,12 +48,12 @@ function clientCheck($pay_id, $id_number, $sender_birthday, $sender_surname, $se
     global $UNI_URL;
 
     $payload = [
-        "action"          => "clientcheck",
-        "pay_id"          => $pay_id,
-        "id_number"       => $id_number,
+        "action" => "clientcheck",
+        "pay_id" => $pay_id,
+        "id_number" => $id_number,
         "sender_birthday" => $sender_birthday,   // dd.MM.yyyy
-        "sender_surname"  => $sender_surname,
-        "sender_name"     => $sender_name,
+        "sender_surname" => $sender_surname,
+        "sender_name" => $sender_name,
     ];
 
     if (!is_null($id_series)) {
@@ -74,8 +74,8 @@ function payment($pay_id, $pay_date): array
     global $UNI_URL;
 
     $payload = [
-        "action"   => "payment",
-        "pay_id"   => $pay_id,
+        "action" => "payment",
+        "pay_id" => $pay_id,
         // dd.MM.yyyy_HH:mm:ss (e.g., 16.08.2024_08:45:50)
         "pay_date" => $pay_date,
     ];
@@ -107,7 +107,7 @@ function fire($payload, string $url, string $method = "POST"): array
     if ($client === null) {
         // No base_uri since we pass absolute URLs
         $client = new Client([
-            'timeout'         => 15,
+            'timeout' => 15,
             'connect_timeout' => 5,
         ]);
     }
@@ -123,12 +123,12 @@ function fire($payload, string $url, string $method = "POST"): array
         if ($method === "GET") {
             $res = $client->request('GET', $url, [
                 'headers' => $headers,
-                'query'   => $payload,
+                'query' => $payload,
             ]);
         } else {
             $res = $client->request('POST', $url, [
                 'headers' => $headers + ['Content-Type' => 'application/json'],
-                'json'    => $payload,
+                'json' => $payload,
             ]);
         }
 
