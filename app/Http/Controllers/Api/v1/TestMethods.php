@@ -14,7 +14,8 @@ class TestMethods extends Response
 
         return self::successResponse(
             [
-                'message' => "Hello, {$params['name']}! This is a success response example."
+                'message' => "Hello, {$params['name']}! This is a success response example.",
+                'partner' => $params,
             ]
         );
     }

@@ -20,6 +20,7 @@ class MainController extends Response
         $version = $request->segment(2) ?? 'v1';
         $params = $request->params ?? [];
         $params['partner_id'] = $request->get('partner')['id'] ?? null;
+        $params['partner'] = $request->get('partner') ?? null;
         // Call method
         return $this->call_method($request->get('method'), $params, $version);
     }
