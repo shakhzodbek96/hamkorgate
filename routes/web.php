@@ -23,10 +23,14 @@ Route::group(['middleware' => "auth"], function () {
         Route::post('partner/filter-partner-show-stats/{id}', [PartnersController::class, 'filterStats'])->name('filter.partner.stats');
         Route::get('partner/stats', [PartnersController::class, 'stats'])->name('partners.stats');
         Route::post('partner/add-user/{id}', [PartnersController::class, 'addUser'])->name('partners.add-user');
+        Route::get('toggle/auto', [PartnersController::class, 'toggleAuto'])->name('partners.toggleAuto');
+        Route::get('toggle/status', [PartnersController::class, 'toggleStatus'])->name('partners.toggleStatus');
+        Route::put('configuration/{id}/partner', [PartnersController::class, 'configurations'])->name('partners.configurations');
     });
     Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/download-data', [App\Http\Controllers\HomeController::class, 'downloadData'])->name('home.download-data');
     Route::get('/update-data', [App\Http\Controllers\HomeController::class, 'updateData'])->name('home.update-data');
+    Route::post('partner/search', [PartnersController::class, 'search'])->name('partners.search');
 
     // User management
     Route::resource('users', App\Http\Controllers\Blade\UserController::class);

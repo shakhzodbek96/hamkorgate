@@ -42,9 +42,6 @@ class Partner extends Model
             Cache::forget('partner_token_' . $partner->config['auth']['token']);
         });
         static::updated(function ($partner) {
-            if (($partner->isDirty('auto') && $partner->auto == 0) || ($partner->isDirty('is_active') && $partner->is_active == 0))
-                $partner->removeDispatchedContracts();
-
             $partner->clearCache();
             Cache::forget('partner_auto_status_' . $partner->id);
             Cache::forget('partner_data_' . $partner->id);

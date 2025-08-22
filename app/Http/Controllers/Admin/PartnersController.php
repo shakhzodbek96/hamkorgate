@@ -173,25 +173,6 @@ class PartnersController extends Controller
             'auto' => 'required|boolean'
         ]);
         $partner = Partner::findOrFail($request->partner_id);
-        try {
-            UserActivity::create([
-                'user_id' => auth()->id(),
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'description' => "Изменение статуса автосписания",
-                'action' => "AutoToggle",
-                'data' => [
-                    'new_auto' => $request->auto,
-                    'old_auto' => $partner->auto,
-                ],
-                'model' => Partner::class,
-                'model_id' => 0,
-                'partner_id' => $request->partner_id
-            ]);
-        } catch (\Exception $exception) {
-            Helper::exceptionSend($exception);
-        }
-
         $partner->update(['auto' => $request->auto]);
         return redirect()->back()
             ->with('success', "Статус автосписания для партнера {$partner->name} успешно изменено!");
@@ -205,24 +186,6 @@ class PartnersController extends Controller
             'is_active' => 'required|boolean'
         ]);
         $partner = Partner::findOrFail($request->partner_id);
-        try {
-            UserActivity::create([
-                'user_id' => auth()->id(),
-                'ip' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'description' => "Изменение статуса партнера",
-                'action' => "PartnerStatus",
-                'data' => [
-                    'new_status' => $request->is_active,
-                    'old_status' => $partner->is_active,
-                ],
-                'model' => Partner::class,
-                'model_id' => 0,
-                'partner_id' => $request->partner_id
-            ]);
-        } catch (\Exception $exception) {
-            Helper::exceptionSend($exception);
-        }
         $partner->update(['is_active' => $request->is_active]);
         return redirect()->back()
             ->with('success', "Статус партнера {$partner->name} успешно изменено!");
