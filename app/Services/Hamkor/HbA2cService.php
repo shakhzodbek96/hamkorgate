@@ -1,7 +1,5 @@
 <?php
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 
 $BASE_URL = "https://host/inttransfer/v2/v2";
 $UNI_URL = $BASE_URL . "/universal-method";
@@ -16,9 +14,6 @@ function cardListByPhone($phone): array
     return fire($payload, $url, "GET");
 }
 
-/**
- * POST /universal-method (action=nmtcheck)
- */
 function nmtCheck($acc_type, $account, $amount, $currency, $pay_id, $settlement_curr = null): array
 {
     global $UNI_URL;
@@ -40,9 +35,7 @@ function nmtCheck($acc_type, $account, $amount, $currency, $pay_id, $settlement_
     return fire($payload, $UNI_URL, "POST");
 }
 
-/**
- * POST /universal-method (action=clientcheck)
- */
+
 function clientCheck($pay_id, $id_number, $sender_birthday, $sender_surname, $sender_name, $id_series = null, $sender_middle_name = null): array
 {
     global $UNI_URL;
@@ -66,9 +59,7 @@ function clientCheck($pay_id, $id_number, $sender_birthday, $sender_surname, $se
     return fire($payload, $UNI_URL, "POST");
 }
 
-/**
- * POST /universal-method (action=payment)
- */
+
 function payment($pay_id, $pay_date): array
 {
     global $UNI_URL;
@@ -76,16 +67,13 @@ function payment($pay_id, $pay_date): array
     $payload = [
         "action" => "payment",
         "pay_id" => $pay_id,
-        // dd.MM.yyyy_HH:mm:ss (e.g., 16.08.2024_08:45:50)
         "pay_date" => $pay_date,
     ];
 
     return fire($payload, $UNI_URL, "POST");
 }
 
-/**
- * POST /universal-method (action=getstatus)
- */
+
 function getStatus($pay_id): array
 {
     global $UNI_URL;
@@ -98,9 +86,7 @@ function getStatus($pay_id): array
     return fire($payload, $UNI_URL, "POST");
 }
 
-/**
- * Low-level HTTP caller
- */
+
 function fire($payload, string $url, string $method = "POST"): array
 {
     static $client = null;
