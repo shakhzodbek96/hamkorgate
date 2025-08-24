@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Models\Transfer;
 use App\Services\Helpers\Response;
 
 class TransferMethods extends Response
@@ -42,38 +43,86 @@ class TransferMethods extends Response
         $this->validate($params, [
             'ext_id'    => 'required|string|max:64',
             'amount'    => 'required|integer|min:1',
-            'currency'  => 'required|string|size:3', // e.g. 840, 643
+            'currency'  => 'required|string|size:3', // e.g. 860, 643
             'receiver'  => 'required|string|min:16|max:32', // card/token
             'sender'    => 'required|array',
         ]);
 
+
+        // check ext_id is unique for partner
+        $partnerId = $params['partner_id'];
+        if (Transfer::where('partner_id', $partnerId)->where('ext_id', $params['ext_id'])->exists()) {
+            return self::errorResponse("ext_id already exists for this partner");
+        }
+
+        // check currency
+        $allowed = ['860','643'];
+        if (!in_array($params['currency'], $allowed)) {
+            return self::errorResponse("Invalid currency code");
+        }
+
+        // check receiver type
+        $receiverType = (strlen($params['receiver']) >= 32) ? 'TOKEN' : 'CARD';
+
+        // check sender required fields
+        foreach (['name','surname','series','birth_date'] as $f) {
+            if (empty($params['sender'][$f])) {
+                return self::errorResponse("sender.$f is required");
+            }
+        }
+
+        // commission (TODO: replace with rate API later)
+        $commission = 1500;
+        $amount     = (int)$params['amount'];
+
+        // save transfer
+        $transfer = Transfer::create([
+            'partner_id'             => $partnerId,
+            'ext_id'                 => $params['ext_id'],
+            'receiver_account_type'  => $receiverType,
+            'receiver_account'       => $params['receiver'],
+            'debit_amount'           => $amount,
+            'debit_currency'         => $params['currency'],
+            'debit_description'      => 'created',
+            'debit_commission'       => $commission,
+            'debit_form_url'         => route('pay.form', ['ext_id' => $params['ext_id']]),
+            'credit_stage'           => 'nmtCheck',
+            'credit_amount'          => $amount - $commission,
+            'credit_currency'        => $params['currency'],
+            'sender_account'         => $params['sender']['card'] ?? null,
+            'sender_name'            => $params['sender']['name'],
+            'sender_surname'         => $params['sender']['surname'],
+            'sender_series'          => $params['sender']['series'],
+            'sender_birth_date'      => $params['sender']['birth_date'],
+        ]);
+
         return self::successResponse([
-            'ext_id' => $params['ext_id'],
+            'ext_id' => $transfer->ext_id,
 
             'debit' => [
-                'form_url'   => 'https://pay.example.com/form/' . $params['ext_id'],
-                'amount'     => $params['amount'],
-                'currency'   => $params['currency'],
-                'commission' => 1500, // fake
-                'state'      => 0,
-                'description'=> 'created',
+                'form_url'    => $transfer->debit_form_url,
+                'amount'      => $transfer->debit_amount,
+                'currency'    => $transfer->debit_currency,
+                'commission'  => $transfer->debit_commission,
+                'state'       => 0,
+                'description' => $transfer->debit_description,
             ],
 
             'credit' => [
-                'amount'     => $params['amount'] - 1500,
-                'currency'   => $params['currency'],
-                'commission' => 0,
-                'description'=> 'receiver credited',
+                'amount'      => $transfer->credit_amount,
+                'currency'    => $transfer->credit_currency,
+                'commission'  => 0,
+                'description' => 'receiver credited',
             ],
 
             'sender' => [
-                'name'    => $params['sender']['name'] ?? 'John Doe',
-                'card'    => $params['sender']['card'] ?? '8600123412341234',
+                'name' => $transfer->sender_name,
+                'card' => $transfer->sender_account,
             ],
 
             'receiver' => [
-                'card'    => $params['receiver'],
-                'bank'    => 'Hamkorbank', // fake
+                'card' => $transfer->receiver_account,
+                'bank' => 'Hamkorbank', // fake
             ],
         ]);
     }
