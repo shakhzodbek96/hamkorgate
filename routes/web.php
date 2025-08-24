@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PartnersController;
+use App\Http\Controllers\Faker\DebitWebFakerPartnerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,3 +38,16 @@ Route::group(['middleware' => "auth"], function () {
     Route::resource('roles', App\Http\Controllers\Blade\RolesController::class);
     Route::get('permissions', [App\Http\Controllers\Blade\PermissionsController::class, 'index'])->name('permissions.index');
 });
+
+
+
+// Payment form
+Route::get ('/pay/{ext_id}',         [DebitWebFakerPartnerController::class, 'showForm'])->name('pay.form');
+Route::post('/pay/{ext_id}',         [DebitWebFakerPartnerController::class, 'submitForm'])->name('pay.submit');
+
+// 3DS mock
+Route::get ('/3ds/{ext_id}',         [DebitWebFakerPartnerController::class, 'show3DS'])->name('pay.3ds');
+Route::post('/3ds/{ext_id}',         [DebitWebFakerPartnerController::class, 'submit3DS'])->name('pay.3ds.submit');
+
+// Success page
+Route::get ('/pay/{ext_id}/success', [DebitWebFakerPartnerController::class, 'success'])->name('pay.success');

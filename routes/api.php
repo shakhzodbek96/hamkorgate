@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\Login;
+use App\Http\Controllers\Api\MainController;
+use App\Http\Controllers\DevOps\HealthCheckController;
 use App\Http\Controllers\Faker\A2CFakerPartnerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Faker\DebitFakerPartnerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,12 +24,12 @@ Route::post('/switch-theme',function (Request $request){
     return $user->switchTheme();
 })->name('switchTheme');
 
-Route::any('healthcheck',[\App\Http\Controllers\DevOps\HealthCheckController::class,'check']);
+Route::any('healthcheck',[HealthCheckController::class,'check']);
 
-Route::post('login',[\App\Http\Controllers\Api\Login::class,'login']);
+Route::post('login',[Login::class,'login']);
 
 Route::group(['middleware' => ['authPartners','throttle:partners']],function (){
-    Route::post('/{version}/partners',[\App\Http\Controllers\Api\MainController::class,'index']);
+    Route::post('/{version}/partners',[MainController::class,'index']);
 });
 
 
@@ -38,5 +42,10 @@ Route::prefix('a2c')->group(function () {
     Route::post('/clientcheck',[A2CFakerPartnerController::class, 'clientCheck']);
     Route::post('/payment',    [A2CFakerPartnerController::class, 'payment']);
     Route::post('/getstatus',  [A2CFakerPartnerController::class, 'getStatus']);
+
+
+    // Debit (card) payment with 3DS – JSON API
+    Route::post('/debit/create', [DebitFakerPartnerController::class, 'create']);
+    Route::post('/debit/state',  [DebitFakerPartnerController::class, 'state']);
 });
 
