@@ -1,142 +1,206 @@
 <?php
 
+namespace App\Services\Hamkor;
 
-$BASE_URL = "https://host/inttransfer/v2/v2";
-$UNI_URL = $BASE_URL . "/universal-method";
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\Cache;
 
-
-function cardListByPhone($phone): array
+class HbA2cService
 {
-    global $BASE_URL;
-    $url = $BASE_URL . "/phone/{$phone}/cards";
-    $payload = [];
+    private Client $http;
+    private string $baseUrl;
+    private string $tokenEndpoint;
+    private string $key;
+    private string $secret;
+    private string $tokenCacheKey = 'hamkor.access_token';
 
-    return fire($payload, $url, "GET");
-}
+    public function __construct()
+    {
+        $this->baseUrl       = rtrim(config('hamkor.base_url'), '/');
+        $this->tokenEndpoint = config('hamkor.token_endpoint');
+        $this->key           = (string) config('hamkor.key');
+        $this->secret        = (string) config('hamkor.secret');
 
-function nmtCheck($acc_type, $account, $amount, $currency, $pay_id, $settlement_curr = null): array
-{
-    global $UNI_URL;
+        $options = [
+            'timeout'         => (float) config('hamkor.timeout'),
+            'connect_timeout' => (float) config('hamkor.connect_timeout'),
+        ];
 
-    $payload = [
-        "action" => "nmtcheck",
-        "acc_type" => $acc_type,
-        "account" => $account,
-        // keep money as string to match partner examples
-        "amount" => (string)$amount,
-        "currency" => $currency,
-        "pay_id" => $pay_id,
-    ];
+        // mTLS (enable when certs are ready)
+        $mtls = config('hamkor.mtls');
+        if (!empty($mtls['enabled'])) {
+            if (!empty($mtls['cert_path'])) $options['cert'] = $mtls['cert_path'];
+            if (!empty($mtls['key_path']))  $options['ssl_key'] = $mtls['key_path'];
+            if (!empty($mtls['key_pass']))  $options['password'] = $mtls['key_pass'];
+            $options['verify'] = $mtls['ca_path'] ?: true;
+        }
 
-    if (!is_null($settlement_curr)) {
-        $payload["settlement_curr"] = $settlement_curr;
+        $this->http = new Client($options);
     }
 
-    return fire($payload, $UNI_URL, "POST");
-}
+    /* -------------------- Public API methods -------------------- */
 
-
-function clientCheck($pay_id, $id_number, $sender_birthday, $sender_surname, $sender_name, $id_series = null, $sender_middle_name = null): array
-{
-    global $UNI_URL;
-
-    $payload = [
-        "action" => "clientcheck",
-        "pay_id" => $pay_id,
-        "id_number" => $id_number,
-        "sender_birthday" => $sender_birthday,   // dd.MM.yyyy
-        "sender_surname" => $sender_surname,
-        "sender_name" => $sender_name,
-    ];
-
-    if (!is_null($id_series)) {
-        $payload["id_series"] = $id_series;
-    }
-    if (!is_null($sender_middle_name)) {
-        $payload["sender_middle_name"] = $sender_middle_name;
+    public function cardListByPhone(string $phone): array
+    {
+        $url = "{$this->baseUrl}/inttransfer/v2/v2/phone/{$phone}/cards";
+        return $this->request('GET', $url, []);
     }
 
-    return fire($payload, $UNI_URL, "POST");
-}
+    public function nmtCheck(
+        string $accType,
+        string $account,
+        int|string $amountMinor,
+        string $currencyAlpha3,
+        string $payId,
+        ?string $settlementCurr = null
+    ): array {
+        $body = [
+            'action'   => 'nmtcheck',
+            'acc_type' => $accType,
+            'account'  => $account,
+            'amount'   => (string) $amountMinor,
+            'currency' => $currencyAlpha3,
+            'pay_id'   => $payId,
+        ];
+        if ($settlementCurr !== null) $body['settlement_curr'] = $settlementCurr;
 
-
-function payment($pay_id, $pay_date): array
-{
-    global $UNI_URL;
-
-    $payload = [
-        "action" => "payment",
-        "pay_id" => $pay_id,
-        "pay_date" => $pay_date,
-    ];
-
-    return fire($payload, $UNI_URL, "POST");
-}
-
-
-function getStatus($pay_id): array
-{
-    global $UNI_URL;
-
-    $payload = [
-        "action" => "getstatus",
-        "pay_id" => $pay_id,
-    ];
-
-    return fire($payload, $UNI_URL, "POST");
-}
-
-
-function fire($payload, string $url, string $method = "POST"): array
-{
-    static $client = null;
-    if ($client === null) {
-        // No base_uri since we pass absolute URLs
-        $client = new Client([
-            'timeout' => 15,
-            'connect_timeout' => 5,
-        ]);
+        $url = "{$this->baseUrl}/inttransfer/v2/v2/universal-method";
+        return $this->request('POST', $url, $body);
     }
 
-    $headers = ['Accept' => 'application/json'];
+    public function clientCheck(
+        string $payId,
+        string $idNumber,
+        string $senderBirthday, // dd.MM.yyyy
+        string $senderSurname,
+        string $senderName,
+        ?string $idSeries = null,
+        ?string $senderMiddleName = null
+    ): array {
+        $body = [
+            'action'          => 'clientcheck',
+            'pay_id'          => $payId,
+            'id_number'       => $idNumber,
+            'sender_birthday' => $senderBirthday,
+            'sender_surname'  => $senderSurname,
+            'sender_name'     => $senderName,
+        ];
+        if ($idSeries !== null)         $body['id_series'] = $idSeries;
+        if ($senderMiddleName !== null) $body['sender_middle_name'] = $senderMiddleName;
 
-    $token = getenv('PARTNER_BEARER_TOKEN');
-    if (!empty($token)) {
+        $url = "{$this->baseUrl}/inttransfer/v2/v2/universal-method";
+        return $this->request('POST', $url, $body);
+    }
+
+    public function payment(string $payId, string $payDate): array
+    {
+        $url  = "{$this->baseUrl}/inttransfer/v2/v2/universal-method";
+        $body = [
+            'action'   => 'payment',
+            'pay_id'   => $payId,
+            'pay_date' => $payDate, // dd.MM.yyyy_HH:mm:ss
+        ];
+        return $this->request('POST', $url, $body);
+    }
+
+    public function getStatus(string $payId): array
+    {
+        $url  = "{$this->baseUrl}/inttransfer/v2/v2/universal-method";
+        $body = ['action' => 'getstatus', 'pay_id' => $payId];
+        return $this->request('POST', $url, $body);
+    }
+
+    /* -------------------- Core request helpers -------------------- */
+
+    private function request(string $method, string $url, array $payload): array
+    {
+        $headers = ['Accept' => 'application/json'];
+        $token   = $this->getAccessToken();
         $headers['Authorization'] = 'Bearer ' . $token;
+
+        $make = function () use ($method, $url, $headers, $payload) {
+            if ($method === 'GET') {
+                return $this->http->request('GET', $url, [
+                    'headers' => $headers,
+                    'query'   => $payload,
+                ]);
+            }
+            return $this->http->request('POST', $url, [
+                'headers' => $headers + ['Content-Type' => 'application/json'],
+                'json'    => $payload,
+            ]);
+        };
+
+        try {
+            $res  = $make();
+            $json = json_decode((string) $res->getBody(), true);
+            return is_array($json) ? $json : ['data' => 'invalid_json_response'];
+        } catch (RequestException $e) {
+            $status = $e->getResponse()?->getStatusCode();
+
+            // Auto refresh on 401 once
+            if ($status === 401) {
+                $this->forgetToken();
+                $new = $this->refreshToken();
+
+                $headers['Authorization'] = 'Bearer ' . $new;
+                try {
+                    $res2  = ($method === 'GET')
+                        ? $this->http->request('GET', $url, ['headers' => $headers, 'query' => $payload])
+                        : $this->http->request('POST', $url, ['headers' => $headers + ['Content-Type' => 'application/json'], 'json' => $payload]);
+
+                    $json2 = json_decode((string) $res2->getBody(), true);
+                    return is_array($json2) ? $json2 : ['data' => 'invalid_json_response_after_refresh'];
+                } catch (\Throwable $e2) {
+                    // fall through
+                }
+            }
+
+            if ($e->hasResponse()) {
+                $body = (string) $e->getResponse()->getBody();
+                $dec  = json_decode($body, true);
+                return is_array($dec) ? $dec : ['data' => $body ?: 'http_error', 'status' => $status];
+            }
+            return ['data' => 'network_error: ' . $e->getMessage()];
+        } catch (\Throwable $e) {
+            return ['data' => 'unexpected_error: ' . $e->getMessage()];
+        }
     }
 
-    try {
-        if ($method === "GET") {
-            $res = $client->request('GET', $url, [
-                'headers' => $headers,
-                'query' => $payload,
-            ]);
-        } else {
-            $res = $client->request('POST', $url, [
-                'headers' => $headers + ['Content-Type' => 'application/json'],
-                'json' => $payload,
-            ]);
+    /* -------------------- Token lifecycle -------------------- */
+
+    public function getAccessToken(): string
+    {
+        $cached = Cache::get($this->tokenCacheKey);
+        if (!empty($cached)) return $cached;
+        return $this->refreshToken();
+    }
+
+    public function refreshToken(): string
+    {
+        $resp = $this->http->post($this->baseUrl . $this->tokenEndpoint, [
+            'auth'    => [$this->key, $this->secret], // Basic Auth
+            'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
+            'json'    => ['grant_type' => 'client_credentials'],
+        ]);
+
+        $json = json_decode((string) $resp->getBody(), true);
+        if (!is_array($json) || empty($json['access_token'])) {
+            throw new \RuntimeException('Hamkor token response invalid');
         }
 
-        $body = (string)$res->getBody();
-        $json = json_decode($body, true);
+        $token      = $json['access_token'];
+        $expiresIn  = (int) ($json['expires_in'] ?? 3600);
+        $buffer     = 60;
+        $ttl        = max(60, $expiresIn - $buffer);
 
-        if (is_array($json)) {
-            return $json;
-        }
-        return ["data" => "invalid_json_response"];
-    } catch (RequestException $e) {
-        // Try to surface partner's error payload if present
-        if ($e->hasResponse()) {
-            $errBody = (string)$e->getResponse()->getBody();
-            $decoded = json_decode($errBody, true);
-            if (is_array($decoded)) {
-                return $decoded;
-            }
-            return ["data" => $errBody !== "" ? $errBody : "http_error"];
-        }
-        return ["data" => "network_error: " . $e->getMessage()];
-    } catch (\Throwable $e) {
-        return ["data" => "unexpected_error: " . $e->getMessage()];
+        Cache::put($this->tokenCacheKey, $token, $ttl);
+        return $token;
+    }
+
+    public function forgetToken(): void
+    {
+        Cache::forget($this->tokenCacheKey);
     }
 }

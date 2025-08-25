@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Faker\A2CFakerPartnerController;
 use App\Models\Transfer;
 use App\Services\Hamkor\HbA2cServiceFaker;
+use App\Services\Hamkor\HbA2cService;
 use App\Services\Helpers\Response;
 use Illuminate\Support\Str;
+
 
 class TransferMethods extends Response
 {
@@ -19,6 +21,11 @@ class TransferMethods extends Response
         if (!isset($params['commission']) || !is_bool($params['commission'])) {
             return self::errorResponse("Invalid commission parameter");
         }
+        $hamkor =new HbA2cService();
+
+// Token (auto-cached)
+        $token = $hamkor->getAccessToken();
+        dd($token);
 
         return self::successResponse([
             'rate' => $params['rate'] ? [] : null,
