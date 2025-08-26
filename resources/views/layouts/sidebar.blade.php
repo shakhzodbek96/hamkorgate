@@ -53,7 +53,8 @@
                 @endcanany
                 @if(auth()->user()->can('Просмотр партнера') && auth()->user()->is_admin)
                     <li>
-                        <a href="{{ route('partners.index') }}" class="waves-effect {{ Request::is('partners*') ? "mm-active":'' }}">
+                        <a href="{{ route('partners.index') }}"
+                           class="waves-effect {{ Request::is('partners*') ? "mm-active":'' }}">
                             <i class="fas fa-briefcase"></i>
                             <span>Партнеры</span>
                         </a>
@@ -75,6 +76,18 @@
                         </a>
                     </li>
                 @endcan
+
+                @can('Просмотр переводов')
+                    <li>
+                        <a href="{{ route('transfers.index') }}"
+                           class="waves-effect {{ Request::is('transfers') || Request::is('transfers/*') ? 'mm-active' : '' }}">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Переводы</span>
+                        </a>
+                    </li>
+                @endcan
+
+
             </ul>
         </div>
     </div>

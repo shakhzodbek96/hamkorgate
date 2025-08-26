@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PartnersController;
 use App\Http\Controllers\Faker\DebitWebFakerPartnerController;
-
+use App\Http\Controllers\Blade\TransferController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -18,6 +18,11 @@ use App\Http\Controllers\Faker\DebitWebFakerPartnerController;
 Auth::routes();
 Route::group(['middleware' => "auth"], function () {
 
+    Route::prefix('transfers')->group(function () {
+        Route::get('/', [TransferController::class, 'index'])->name('transfers.index');
+        Route::get('/create', [TransferController::class, 'create'])->name('transfers.create');
+        Route::get('/{id}', [TransferController::class, 'show'])->name('transfers.show');
+    });
     // Admin routes
     Route::group(['prefix' => 'cpadmin', 'middleware' => 'admin'], function () {
         Route::resource('partners', PartnersController::class);
@@ -37,7 +42,14 @@ Route::group(['middleware' => "auth"], function () {
     Route::resource('users', App\Http\Controllers\Blade\UserController::class);
     Route::resource('roles', App\Http\Controllers\Blade\RolesController::class);
     Route::get('permissions', [App\Http\Controllers\Blade\PermissionsController::class, 'index'])->name('permissions.index');
+
+
 });
+
+
+
+
+
 
 
 
