@@ -15,7 +15,6 @@
         </label>
         <button type="submit">Confirm</button>
     </form>
-
     <p style="margin-top:1rem; font-size:0.9em;">Masked card: <code>{{ $p['card']['masked'] ?? '' }}</code></p>
 </main>
 </body></html>
