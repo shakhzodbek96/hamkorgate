@@ -33,4 +33,5 @@ class Transfer extends Model
         'credit_amount' => 'decimal:2',
         'sender_birth_date' => 'date',
     ];
+
 }

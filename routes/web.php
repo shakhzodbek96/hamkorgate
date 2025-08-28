@@ -17,12 +17,6 @@ use App\Http\Controllers\Blade\TransferController;
 
 Auth::routes();
 Route::group(['middleware' => "auth"], function () {
-
-    Route::prefix('transfers')->group(function () {
-        Route::get('/', [TransferController::class, 'index'])->name('transfers.index');
-        Route::get('/create', [TransferController::class, 'create'])->name('transfers.create');
-        Route::get('/{id}', [TransferController::class, 'show'])->name('transfers.show');
-    });
     // Admin routes
     Route::group(['prefix' => 'cpadmin', 'middleware' => 'admin'], function () {
         Route::resource('partners', PartnersController::class);
@@ -32,6 +26,10 @@ Route::group(['middleware' => "auth"], function () {
         Route::get('toggle/auto', [PartnersController::class, 'toggleAuto'])->name('partners.toggleAuto');
         Route::get('toggle/status', [PartnersController::class, 'toggleStatus'])->name('partners.toggleStatus');
         Route::put('configuration/{id}/partner', [PartnersController::class, 'configurations'])->name('partners.configurations');
+
+        Route::get('transfers/', [TransferController::class, 'index'])->name('transfers.index');
+        Route::get('transfers/create', [TransferController::class, 'create'])->name('transfers.create');
+        Route::get('transfers/{id}', [TransferController::class, 'show'])->name('transfers.show');
     });
     Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/download-data', [App\Http\Controllers\HomeController::class, 'downloadData'])->name('home.download-data');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Blade;
 
 use App\Http\Controllers\Controller;
+use App\Models\Transfer;
 
 class TransferController extends Controller
 {
@@ -11,7 +12,8 @@ class TransferController extends Controller
      */
     public function index()
     {
-        return view('pages.transfers.index');
+        $transfers = Transfer::all();
+        return view('pages.transfers.index', compact('transfers'));
     }
 
     /**
